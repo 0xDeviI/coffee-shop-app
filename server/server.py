@@ -109,12 +109,55 @@ def get_coffee():
         coffees.append({
             'id': coffee[0],
             'name': coffee[1],
-            'description': coffee[2],
-            'tags': json.loads(coffee[3]),
-            'image': f"{BASE_ADDRESS}{coffee[4]}",
-            'price': coffee[5]
+            'type': coffee[2],
+            'description': coffee[3],
+            'tags': json.loads(coffee[4]),
+            'image': f"{BASE_ADDRESS}{coffee[5]}",
+            'price': coffee[6]
         })
         
+    return jsonify({
+        'status': 'success',
+        'message': 'Coffee list fetched successfully',
+        'coffee': coffees
+    })
+
+@jwt_required(optional=False)
+@app.route('/api/v1/coffee/type', methods=['GET'])
+def get_coffee_type():
+    verify_jwt_in_request()
+    connectionCursor = mySql.connection.cursor()
+    connectionCursor.execute("SELECT * FROM coffees")
+    _coffees = connectionCursor.fetchall()
+    coffee_types = []
+    for coffee in _coffees:
+        if (coffee[2] not in coffee_types):
+            coffee_types.append(coffee[2])
+    return jsonify({
+        'status': 'success',
+        'message': 'Coffee types fetched successfully',
+        'coffee_types': coffee_types
+    })
+
+@jwt_required(optional=False)
+@app.route('/api/v1/coffee/type/<type>', methods=['GET'])
+def get_coffee_type_coffees(type):
+    verify_jwt_in_request()
+    connectionCursor = mySql.connection.cursor()
+    connectionCursor.execute(f"SELECT * FROM coffees WHERE type = '{type}'")
+    _coffees = connectionCursor.fetchall()
+    coffees = []
+    BASE_ADDRESS = f'{request.host_url}coffee/catalog/'
+    for coffee in _coffees:
+        coffees.append({
+            'id': coffee[0],
+            'name': coffee[1],
+            'type': coffee[2],
+            'description': coffee[3],
+            'tags': json.loads(coffee[4]),
+            'image': f"{BASE_ADDRESS}{coffee[5]}",
+            'price': coffee[6]
+        })
     return jsonify({
         'status': 'success',
         'message': 'Coffee list fetched successfully',
